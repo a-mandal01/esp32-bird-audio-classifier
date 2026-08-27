@@ -256,7 +256,41 @@ To improve model robustness, training data may be augmented using techniques suc
 
 The goal is to help the model distinguish bird vocalizations under realistic outdoor conditions rather than only clean recordings.
 
-> **Current Status:** Dataset collection has **not yet started**. Bird species, recording locations, sample counts, and final class definitions will be determined during the dataset development phase.
+> **Current Status:** The initial five-species Xeno-canto dataset is complete
+> (75 recordings per species). The collection workflow below can curate future
+> species without changing completed datasets.
+
+### Xeno-canto collection
+
+The repository includes a reproducible collector for original Xeno-canto audio.
+It selects A/B-quality, non-playback recordings of at least five seconds, with a
+fixed default seed and recordist-first diversity selection. Existing completed
+datasets are validated and left unchanged.
+
+```powershell
+& .\.venv\Scripts\python.exe .\collect_species.py "Blue Jay"
+```
+
+Install the Python dependencies with `python -m pip install -r requirements.txt`.
+The Xeno-canto key remains in the ignored `.env` file as
+`XENO_CANTO_API_KEY`; the collector loads it without printing or passing the
+key on the command line. An already-exported environment variable takes
+precedence.
+
+`data/raw/<normalized_species>/metadata_only.csv` is the canonical Xeno-canto
+candidate metadata file. The collector preserves the original source fields,
+including `id`, `url`, `file`, `file-name`, `en`, quality, playback, recordist,
+location, type, and duration. It writes the selected rows to
+`data/metadata/<normalized_species>_selected.csv` and stores untouched original
+audio at `data/raw/<normalized_species>/<gen>_<sp>/<file-name>`.
+
+Optional arguments are `--recordings`, `--workers`, `--seed`, and
+`--max-replacement-rounds`. The collector rejects a species before audio
+download if fewer than the requested number of eligible recordings exist. It
+reports diversity as a warning rather than a hard threshold, replaces failed
+downloads up to a finite limit without retrying a previously failed ID as a
+replacement, and validates exact `file-name` values at the end. It never
+infers a recording ID from a filename or alters raw audio.
 
 ---
 
